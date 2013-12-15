@@ -4,9 +4,9 @@ using System.Collections;
 public class InputSamurai : MonoBehaviour {
 	
 	private float verticalSpeed = 0.0f;
-	private float moveSpeed = 7;
+	private float moveSpeed = 10;
 	private float inputSpeed = 5;
-	private float jumpValue = 10;
+	private float jumpValue = 30;
 	private Vector3 moveDirection = Vector3.zero;
 	private bool isControllable = true;
 	private Vector3 inAirVelocity =  Vector3.zero;
@@ -14,21 +14,28 @@ public class InputSamurai : MonoBehaviour {
 	CollisionFlags collisionFlags;
 	private bool isJump = false;
 	
-	static int walkState  = Animator.StringToHash("Base Layer.walk");
-	static int jumpState  = Animator.StringToHash("Base Layer.jumpFly");
-	static int kesagiri  = Animator.StringToHash("Base Layer.kesagiri");
+	static int runState  = Animator.StringToHash("Base Layer.run");
+	static int jumpStartState  = Animator.StringToHash("Base Layer.jumpStart");
+	static int jumpProcessState  = Animator.StringToHash("Base Layer.jumpProcess");
+	static int kesagiri  = Animator.StringToHash("Base Layer.attack");
+	
+	private MovingPersonController movingPersonController;
+	
+	GameObject attackTarget;
 	// Use this for initialization
 	void Start () {
 		
+		movingPersonController = gameObject.GetComponent<MovingPersonController>();
 		Camera.main.transform.parent = gameObject.transform;
 		Vector3 localPos = Camera.main.transform.localPosition;
-		localPos.y = 5*8;
-		localPos.z = -5*8;
+		localPos.y = 5;
+		localPos.z = -5;
 		localPos.x = 0;
 		Vector3 localAngles = Camera.main.transform.localEulerAngles;
 		localAngles.x = 30;
 		Camera.main.transform.localPosition = localPos;
 		Camera.main.transform.localEulerAngles = localAngles;
+		
 	
 	}
 	
@@ -45,7 +52,7 @@ public class InputSamurai : MonoBehaviour {
 				
 			}
 			else
-				verticalSpeed += Physics.gravity.y * Time.deltaTime;
+				verticalSpeed += 5*Physics.gravity.y * Time.fixedDeltaTime;
 			}
 		
 		if (isJump) {
@@ -76,9 +83,14 @@ public class InputSamurai : MonoBehaviour {
 		
 		//moveDirection =new Vector3(h,0,1);
 		moveDirection = moveDirection.normalized;
-		Vector3 movement =new Vector3(0,0,moveSpeed)+ moveDirection * inputSpeed + new Vector3 (0, verticalSpeed, 0) + inAirVelocity;
-		movement *= Time.deltaTime;
-	
+		Vector3 movingVector =movingPersonController.nextPosition- transform.position;
+		Vector3 movement =new Vector3(movingVector.x,0,movingVector.z);//+moveDirection * inputSpeed + new Vector3 (0, verticalSpeed, 0) + inAirVelocity;
+		//movement *= Time.fixedDeltaTime;
+		//transform.position =movingPersonController.nextPosition;
+		//transform.eulerAngles =movingPersonController.nextRotation;
+		Vector3 rotVector =new Vector3(movingVector.x,0,movingVector.z);
+		Quaternion rotation = Quaternion.LookRotation(rotVector);
+		transform.rotation = Quaternion.Lerp(transform.rotation,rotation,Time.deltaTime);
 		// Move the controller
 		CharacterController controller = GetComponent<CharacterController>();
 		collisionFlags = controller.Move(movement);
@@ -138,9 +150,11 @@ public class InputSamurai : MonoBehaviour {
 	void UnityInput() {
 		int translation = 0;
 		int acceleration = 0;
+		bool strike = false;
 		if (Input.GetKey("d")) translation++;
 		if (Input.GetKey("a")) translation--;
-		if (Input.GetKey("w")) moveSpeed=20; else moveSpeed = 7;
+		if (Input.GetKey("w")) moveSpeed=40; else moveSpeed = 20;
+		if (Input.GetKey("e")) strike = true;
 		//		print(translation);
 		moveDirection =  new Vector3(translation,0,0);
         //    moveDirection = movement ; 
@@ -148,21 +162,34 @@ public class InputSamurai : MonoBehaviour {
 		Animator animator = GetComponent<Animator>() as Animator;
 		AnimatorStateInfo cureentBaseState = animator.GetCurrentAnimatorStateInfo(0);
 		
-		if (cureentBaseState.nameHash == walkState) {
+		if (cureentBaseState.nameHash == runState ) {
+			
+			
+
 			
 			if (Input.GetKey("space")) {
 			animator.SetBool("jump",true);
 			isJump = true;
-			//print("jump");	
+			print("jump");	
+			} else {
+				if (strike) {
+					animator.SetBool("swipe",true);
+					print("strike");	
+					
+				}	
 			}
-		} else if (cureentBaseState.nameHash == jumpState) {
+		} else if (cureentBaseState.nameHash == jumpProcessState) {
 			
 			if (IsGrounded() ) {
 				animator.SetBool("jump",false);
 			}
 			
-		} else if (cureentBaseState.nameHash == kesagiri) {
+		} else if (cureentBaseState.nameHash == kesagiri ) {
 			animator.SetBool("swipe",false);
+			
+			if (cureentBaseState.normalizedTime >0.6f ) {
+				attackTarget.SendMessageUpwards("swipe",gameObject,SendMessageOptions.DontRequireReceiver);
+			}
 		}
 		
 	}
@@ -186,9 +213,9 @@ public class InputSamurai : MonoBehaviour {
 		}
 		Animator animator = GetComponent<Animator>() as Animator;
 		AnimatorStateInfo cureentBaseState = animator.GetCurrentAnimatorStateInfo(0);
-		if (cureentBaseState.nameHash == walkState) {
+		if (cureentBaseState.nameHash == runState) {
 			animator.SetBool("swipe",true);
-			other.gameObject.SendMessage("swipe",gameObject,SendMessageOptions.DontRequireReceiver);
+			attackTarget = other.gameObject;
 		}
     }
 }
