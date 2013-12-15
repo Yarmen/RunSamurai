@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class EnemyScript : MonoBehaviour {
-
+	// It is very, very good script Armen, 15/12/2013 20:03
 	// Use this for initialization
 	 Rigidbody[] rigids;
 	
