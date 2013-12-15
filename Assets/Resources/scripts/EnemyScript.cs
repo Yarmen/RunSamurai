@@ -2,14 +2,20 @@
 using System.Collections;
 
 public class EnemyScript : MonoBehaviour {
-	// It is very, very good script Armen, 15/12/2013 20:03
+
 	// Use this for initialization
-	 Rigidbody[] rigids;
+	Rigidbody[] rigids;
+	Collider[] colliders;
+	Animator animator;
 	
 	void Start () {
 		
 		rigids = GetComponentsInChildren< Rigidbody>();
+		colliders = GetComponentsInChildren<Collider>();
 		makeKinamatic(true);
+		
+		Animator[] objects = GetComponentsInChildren<Animator>();
+		if (objects.Length >0) animator = objects[0];
 	
 	}
 	
@@ -17,7 +23,13 @@ public class EnemyScript : MonoBehaviour {
 	
 	void makeKinamatic(bool kinematic) {
         foreach(Rigidbody rb  in rigids){
-    	rb.isKinematic = kinematic;
+			if (rb==rigidbody) continue;
+    		rb.isKinematic = kinematic;
+  		}
+		
+		foreach(Collider col  in colliders){
+			if (col==collider || col.isTrigger) continue;
+    		col.enabled = !kinematic;
   		}
 		
 	//	print("recieve message");
@@ -26,17 +38,27 @@ public class EnemyScript : MonoBehaviour {
 	
 	void swipe(GameObject obj) {
 		
+		animator.enabled = false;
 		 Vector3 direction = obj.transform.position - transform.position;
-        print("recieve message");
+       // print("recieve message");
+		rigidbody.isKinematic = true;
+		collider.enabled = false;
+		foreach(Collider col  in colliders){
+			if (col==collider) continue;
+    		col.enabled =true;
+  		}
 		
        	foreach(Rigidbody rb  in rigids){
+		if (rb==rigidbody) continue;	
     	rb.isKinematic = false;
-			rb.AddForceAtPosition(-30*(direction.normalized+Vector3.up), transform.position,ForceMode.Impulse);
-			if (rb.tag == "centerBody" ) {
-
-				float x = Random.Range(5,20)*20;
-				int action =  Random.Range(0,3);
 			
+			if (rb.tag == "centerBody" ) {
+				//print("swipe to center body");
+				//rb.AddForceAtPosition(-10*(direction.normalized), transform.position,ForceMode.Impulse);
+				rb.AddRelativeForce(new Vector3(1,0,0) * 50,ForceMode.Impulse);
+				float x = Random.Range(5,20);
+				int action =  Random.Range(0,3);
+				/*
 				switch (action) {
 				case 0: rb.AddRelativeTorque(x,0,0);break;
 				case 1: rb.AddRelativeTorque(0,x,0);break;
@@ -44,6 +66,7 @@ public class EnemyScript : MonoBehaviour {
 				default: break;
 				
 				}
+				*/
 				
 			}
 			
