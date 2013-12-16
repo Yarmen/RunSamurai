@@ -27,7 +27,7 @@ public class TerrainManager : MonoBehaviour {
 		gameDelegate = gameObject.GetComponent<GameDelegate>();
 		
 		
-		for(int i = 0;i<5;i++) {
+		for(int i = 0;i<2;i++) {
 			
 			createTerrainObject();			
 			

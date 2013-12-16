@@ -6,13 +6,14 @@ public class InputSamurai : MonoBehaviour {
 	private float verticalSpeed = 0.0f;
 	private float moveSpeed = 10;
 	private float inputSpeed = 5;
-	private float jumpValue = 30;
+	private float jumpValue = 2;
 	private Vector3 moveDirection = Vector3.zero;
 	private bool isControllable = true;
 	private Vector3 inAirVelocity =  Vector3.zero;
 	private Vector3 touchCenter =  Vector3.zero;
 	CollisionFlags collisionFlags;
 	private bool isJump = false;
+	private int roadWidth = 8;
 	
 	static int runState  = Animator.StringToHash("Base Layer.run");
 	static int jumpStartState  = Animator.StringToHash("Base Layer.jumpStart");
@@ -52,12 +53,13 @@ public class InputSamurai : MonoBehaviour {
 				
 			}
 			else
-				verticalSpeed += 5*Physics.gravity.y * Time.fixedDeltaTime;
+				verticalSpeed += 0.5f*Physics.gravity.y * Time.fixedDeltaTime;
 			}
 		
 		if (isJump) {
 				 verticalSpeed = jumpValue;
 				isJump = false;
+				print("jumping");
 			} 
 	}
 	
@@ -80,17 +82,19 @@ public class InputSamurai : MonoBehaviour {
 		//return;
 		ApplyGravity ();
 		float h = Input.GetAxisRaw("Horizontal");
-		
-		//moveDirection =new Vector3(h,0,1);
-		moveDirection = moveDirection.normalized;
-		Vector3 movingVector =movingPersonController.nextPosition- transform.position;
-		Vector3 movement =new Vector3(movingVector.x,0,movingVector.z);//+moveDirection * inputSpeed + new Vector3 (0, verticalSpeed, 0) + inAirVelocity;
-		//movement *= Time.fixedDeltaTime;
-		//transform.position =movingPersonController.nextPosition;
-		//transform.eulerAngles =movingPersonController.nextRotation;
+		//print(moveDirection);
+		//moveDirection =new Vector3(10,0,0);
+		//moveDirection = moveDirection.normalized;
+		Vector3 movingVector =movingPersonController.nextPosition+transform.rotation*moveDirection - transform.position;
 		Vector3 rotVector =new Vector3(movingVector.x,0,movingVector.z);
 		Quaternion rotation = Quaternion.LookRotation(rotVector);
 		transform.rotation = Quaternion.Lerp(transform.rotation,rotation,Time.deltaTime);
+		
+		Vector3 movement =new Vector3(movingVector.x,0,movingVector.z)+ new Vector3 (0, verticalSpeed, 0);
+		//movement *= Time.fixedDeltaTime;
+		//transform.position =movingPersonController.nextPosition;
+		//transform.eulerAngles =movingPersonController.nextRotation;
+		
 		// Move the controller
 		CharacterController controller = GetComponent<CharacterController>();
 		collisionFlags = controller.Move(movement);
@@ -101,7 +105,7 @@ public class InputSamurai : MonoBehaviour {
 	
 	
 	void iphoneInput() {
-		moveDirection = Vector3.zero;
+		//moveDirection = Vector3.zero;
 		 if (Input.touchCount > 0 ) {
 		 	
 			
@@ -148,15 +152,16 @@ public class InputSamurai : MonoBehaviour {
 	}
 	
 	void UnityInput() {
-		int translation = 0;
+		float translation = 0;
 		int acceleration = 0;
 		bool strike = false;
-		if (Input.GetKey("d")) translation++;
-		if (Input.GetKey("a")) translation--;
+		if (Input.GetKey("d")) translation+=.1f;
+		if (Input.GetKey("a")) translation-=.1f;
 		if (Input.GetKey("w")) moveSpeed=40; else moveSpeed = 20;
 		if (Input.GetKey("e")) strike = true;
 		//		print(translation);
-		moveDirection =  new Vector3(translation,0,0);
+		moveDirection =  new Vector3(moveDirection.x+translation,0,0);
+		moveDirection = new Vector3(Mathf.Clamp(moveDirection.x,-roadWidth*0.5f,roadWidth*0.5f),0,0);
         //    moveDirection = movement ; 
 		//if (Input.GetKey("space"))  jump();
 		Animator animator = GetComponent<Animator>() as Animator;
@@ -167,7 +172,7 @@ public class InputSamurai : MonoBehaviour {
 			
 
 			
-			if (Input.GetKey("space")) {
+			if (Input.GetKey("space") && isJump==false && IsGrounded ()) {
 			animator.SetBool("jump",true);
 			isJump = true;
 			print("jump");	

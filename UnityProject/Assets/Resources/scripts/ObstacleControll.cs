@@ -21,7 +21,7 @@ public class ObstacleControll : MonoBehaviour {
 	void FixedUpdate () {
 		//print(Time.time);
 		if (nextTimeEnemy<Time.time) {
-		//	createEnemy();
+			createEnemy();
 			nextTimeEnemy+=enemyCreationSpeed;
 		}
 	
@@ -38,15 +38,20 @@ public class ObstacleControll : MonoBehaviour {
 				default: break;
 				
 				}
-			
+		GameObject road = gameDelegate.terrainManager.lastObject;
+		GameObject waypointsParent = (GameObject.Find(road.name+"/waypoints")) as GameObject;
+		GameObject[] waypoints = new GameObject[waypointsParent.transform.childCount-1];
 		
+		int randomPointNumber = Random.Range(0,waypoints.Length);
 		
-		Vector3 position = samurai.transform.position+new Vector3(0,10,100);
-		position.x = gameDelegate.terrainManager.lastObject.transform.position.x+xOffset;
+		GameObject randomPoint = GameObject.Find(road.name+"/waypoints/"+randomPointNumber) as GameObject;
+		
+		Vector3 localPosition = new Vector3(xOffset,0,0);
+		Vector3 position = randomPoint.transform.position+randomPoint.transform.rotation*localPosition;
 		
 		GameObject enemy = Instantiate(GameObject.Find("enemy")) as GameObject ;
 		enemy.transform.position = position;
-		
+		enemy.transform.rotation = randomPoint.transform.rotation;
 	}
 	
 	
