@@ -47,6 +47,7 @@
      <Compile Include="Assets\Resources\scripts\Arrays.cs" />
      <Compile Include="Assets\Resources\scripts\AudioManager.cs" />
      <Compile Include="Assets\Resources\scripts\EnemyScript.cs" />
+     <Compile Include="Assets\Resources\scripts\GUIController.cs" />
      <Compile Include="Assets\Resources\scripts\GameDelegate.cs" />
      <Compile Include="Assets\Resources\scripts\InputSamurai.cs" />
      <Compile Include="Assets\Resources\scripts\MovingPersonController.cs" />
